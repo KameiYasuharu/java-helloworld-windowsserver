@@ -1,31 +1,39 @@
 version: 0.2
+
 phases:
   install:
+    # runtime-versions は無視されるので、警告が出ますがそのままにしておきます。
+    # java: corretto11 は、このイメージに Corretto 11 がプリインストールされていることを期待するものです。
     runtime-versions:
       java: corretto11
     commands:
       - echo Creating output directories for compilation and packaging...
       - mkdir classes
       - mkdir dist
-      - echo Setting classpath for Java compilation...
-      - set CLASSPATH=.\lib\servlet-api.jar
+      - echo Finished install phase setup.
   pre_build:
     commands:
       - echo Pre-build phase...
       - echo Compiling Java source files...
-      - javac -d classes -classpath %CLASSPATH% src\main\java\com\example\demo\HelloWorld.java
+      - # CLASSPATH 環境変数を使わず、直接 -classpath オプションにパスを指定します
+      - javac -d classes -classpath ".\lib\servlet-api.jar" src\main\java\com\example\demo\HelloWorld.java
       - echo Java compilation completed.
   build:
     commands:
       - echo Build started on `date`
       - echo Arranging files for WAR creation...
+      - # WARファイルに必要なディレクトリ構造を作成
       - mkdir .\dist\temp_war
       - mkdir .\dist\temp_war\WEB-INF
       - mkdir .\dist\temp_war\WEB-INF\classes
+      - # webapp/index.html を WAR のルートにコピー
       - copy .\webapp\index.html .\dist\temp_war\
+      - # webapp/WEB-INF/ を WAR の WEB-INF にコピー
       - xcopy /E /I .\webapp\WEB-INF .\dist\temp_war\WEB-INF\
+      - # コンパイルされたクラスファイルを WAR の WEB-INF/classes にコピー
       - xcopy /E /I .\classes .\dist\temp_war\WEB-INF\classes\
       - echo Creating WAR file...
+      - # temp_war ディレクトリを起点に WAR ファイルを作成します
       - pushd .\dist\temp_war
       - jar -cvf ..\helloworld.war .
       - popd
@@ -33,6 +41,7 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
+
 artifacts:
   files:
     - dist/helloworld.war
