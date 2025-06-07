@@ -1,0 +1,39 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - echo Creating output directories for compilation and packaging...
+      - mkdir classes
+      - mkdir dist
+      - echo Setting classpath for Java compilation...
+      - set CLASSPATH=.\lib\servlet-api.jar
+  pre_build:
+    commands:
+      - echo Pre-build phase...
+      - echo Compiling Java source files...
+      - javac -d classes -classpath %CLASSPATH% src\main\java\com\example\demo\HelloWorld.java
+      - echo Java compilation completed.
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Arranging files for WAR creation...
+      - mkdir .\dist\temp_war
+      - mkdir .\dist\temp_war\WEB-INF
+      - mkdir .\dist\temp_war\WEB-INF\classes
+      - copy .\webapp\index.html .\dist\temp_war\
+      - xcopy /E /I .\webapp\WEB-INF .\dist\temp_war\WEB-INF\
+      - xcopy /E /I .\classes .\dist\temp_war\WEB-INF\classes\
+      - echo Creating WAR file...
+      - pushd .\dist\temp_war
+      - jar -cvf ..\helloworld.war .
+      - popd
+      - echo WAR file helloworld.war created successfully.
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - dist/helloworld.war
+  discard-paths: yes
