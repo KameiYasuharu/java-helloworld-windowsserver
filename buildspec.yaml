@@ -2,10 +2,8 @@ version: 0.2
 
 phases:
   install:
-    # runtime-versions は無視されるので、警告が出ますがそのままにしておきます。
-    # java: corretto11 は、このイメージに Corretto 11 がプリインストールされていることを期待するものです。
     runtime-versions:
-      java: corretto11
+      java: corretto11 # この設定は引き続き無視されますが、コンパイルターゲットは javac で制御します
     commands:
       - echo Creating output directories for compilation and packaging...
       - mkdir classes
@@ -15,8 +13,8 @@ phases:
     commands:
       - echo Pre-build phase...
       - echo Compiling Java source files...
-      - # CLASSPATH 環境変数を使わず、直接 -classpath オプションにパスを指定します
-      - javac -d classes -classpath ".\lib\servlet-api.jar" src\main\java\com\example\demo\HelloWorld.java
+      - # Java 8 互換でコンパイルするために -source 8 -target 8 を追加
+      - javac -d classes -classpath ".\lib\servlet-api.jar" -source 8 -target 8 src\main\java\com\example\demo\HelloWorld.java
       - echo Java compilation completed.
   build:
     commands:
